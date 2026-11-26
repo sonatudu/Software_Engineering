@@ -48,10 +48,10 @@ This platform uses a **Collaborative Multi-Agent Architecture** to:
 
 ---
 
-## ⚡ Live AI Mode vs. Demo Mode (Zero-Risk Presentation)
+## ⚡ Execution Modes (Dual-Engine Architecture)
 
-* **Live AI Mode:** Enter any free Gemini API key in the sidebar. The app will communicate dynamically with Google Gemini (`gemini-2.5-flash`).
-* **Deterministic Demo Mode (Fail-Safe):** If no API key is provided or internet connectivity drops, the system automatically uses smart heuristic reasoning and pre-loaded domain data. **Your demo will never crash in front of the professor.**
+* **Live AI Synthesis Mode:** Connects to the Google Gemini API (`gemini-2.0-flash` / `gemini-3.8-flash`) for real-time generative requirement elicitation, contextual follow-up questioning, and adaptive IEEE 830 structuring.
+* **Deterministic Rule Engine (Offline Resiliency):** When operating offline or in air-gapped environments, the system seamlessly activates rule-based heuristic parsing grounded in domain expert knowledge bases to ensure uninterrupted functionality.
 
 ---
 
@@ -71,7 +71,7 @@ Software_Engineering/
 │   ├── regulations.py         # RBI, PCI-DSS, GDPR, Basel III controls
 │   └── sdlc_rules.py          # 13 decision factors & SDLC model profiles
 ├── data/
-│   └── sample_cases.py        # Pre-loaded financial case studies (Loan, KYC, Fraud)
+│   └── sample_cases.py        # Pre-loaded financial case studies (Wallet, Loan, KYC, Fraud)
 ├── requirements.txt           # Python package dependencies
 ├── Problem Statement.docx     # Course project problem statement
 └── README.md                  # System documentation & quickstart guide
@@ -79,12 +79,12 @@ Software_Engineering/
 
 ---
 
-## 🎤 How to Demo to Your Professor (3-Minute Script)
+## 🖥️ System Walkthrough & Operational Workflow
 
-1. **Open the App:** Run `streamlit run app.py` and show the clean web dashboard.
-2. **Select a Case Study:** Pick *"Digital Loan Origination & Instant Credit Assessment"* from the sidebar.
-3. **Tab 1 (Interview):** Show the 6-dimension requirement coverage meter and chat with the AI agent asking follow-up questions about transaction limits and compliance.
-4. **Tab 2 (Requirements):** Show the structured requirements table with categories, priorities, and Gherkin acceptance criteria. Point out the **Quality & Defect Analysis** section catching ambiguous terms.
-5. **Tab 3 (Compliance):** Show the automated mapping to **RBI Digital Lending Guidelines** and **PCI-DSS**, and the **Human Approval Gates** for high-risk transfers.
-6. **Tab 4 (SDLC Engine):** Adjust the **Regulatory Criticality** and **Continuous Delivery** sliders to show live recalculation of the SDLC chart (**Agile-DevSecOps Hybrid** ranked top). Show the tailored phase workflow.
-7. **Tab 5 (Export):** Click **"Download Full SRS Document (.md)"** to show the complete IEEE 830 document ready for delivery.
+1. **Launch the Workbench:** Execute `streamlit run app.py` to start the interactive web application.
+2. **Domain Case Initialization:** Select a pre-configured financial case study from the sidebar (e.g., *Peer-to-Peer Mobile Wallet*, *Digital Loan Origination*, or *Video-KYC*) or begin a fresh session via *Blank Custom Project*.
+3. **Module 1 (Adaptive Elicitation):** Engage in dynamic stakeholder dialogue while tracking the real-time 6-dimension requirement coverage meter.
+4. **Module 2 (Structured Requirements):** Inspect structured IEEE 830 requirement cards, Gherkin acceptance criteria (*Given... When... Then...*), and automated ambiguity defect inspections.
+5. **Module 3 (Regulatory Grounding):** Review automated compliance mappings against RBI PPI Directions, RBI Data Localization, PCI-DSS v4.0, and DPDP mandates.
+6. **Module 4 (SDLC Decision Engine):** Examine dialogue-derived MCDA suitability rankings, interact with decision factor sliders, and review customized SDLC workflows.
+7. **Module 5 (SRS & RTM Export):** Preview and export publication-grade IEEE 830 Software Requirements Specifications and Traceability Matrices.
