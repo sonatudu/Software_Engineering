@@ -98,43 +98,191 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.markdown("### 🤖 Agent Configuration")
-    env_key = os.getenv("GEMINI_API_KEY", "").strip()
-    api_key_input = st.text_input(
-        "Gemini API Key (Optional):",
-        value=env_key,
-        type="password",
-        help="Leave blank to run in robust Offline / Deterministic Demo Mode. Saved in .env so you don't have to re-enter."
+    st.markdown("### 🤖 Free AI Engine Configuration")
+    st.caption("100% Free AI models — Zero payment or credit card required.")
+    
+    ai_mode = st.selectbox(
+        "Choose AI Engine:",
+        options=[
+            "Google Gemini (Free Cloud)",
+            "Groq Cloud (Free Llama 3.3 / DeepSeek-R1)",
+            "Local Ollama (Free Offline - Zero Keys)",
+            "Free Multi-Model Ensemble (Hybrid)",
+            "Deterministic Rule Engine (Offline Fail-Safe)"
+        ],
+        index=0,
+        help="All options are completely free."
     )
-    
-    # Auto-save key to .env if user enters a new one
-    if api_key_input.strip() and api_key_input.strip() != env_key:
-        if st.checkbox("💾 Remember key permanently in .env", value=True, help="Saves key locally to .env so it auto-loads every time you open the app."):
-            try:
-                with open(".env", "w") as f:
-                    f.write(f"GEMINI_API_KEY={api_key_input.strip()}\n")
-                os.environ["GEMINI_API_KEY"] = api_key_input.strip()
-                st.toast("✅ Key saved to .env! You won't need to re-enter it.", icon="💾")
-            except Exception as e:
-                st.warning(f"Could not save .env: {e}")
-    
-    # Initialize agents
-    llm = LLMClient(api_key=api_key_input)
-    interaction_agent = InteractionAgent(llm)
-    extraction_agent = ExtractionAgent(llm)
-    compliance_agent = ComplianceAgent(llm)
-    sdlc_engine = SDLCEngine(llm)
-    doc_agent = DocumentationAgent()
 
-    if llm.is_active():
-        model_name = getattr(llm, "active_model", "gemini-2.0-flash")
-        st.success(f"🟢 Live Gemini AI ({model_name}) Connected")
-    elif api_key_input.strip() and getattr(llm, "last_error", ""):
-        err = getattr(llm, "last_error", "")[:90]
-        st.error(f"❌ Invalid API Key: Google returned '{err}...'")
-        st.info("🔵 Running in Deterministic Demo Mode")
-    else:
-        st.info("🔵 Deterministic Demo Mode (Fail-Safe)")
+    # Key loading helper
+    def save_env_keys(updates: dict):
+        env_vars = {}
+        if os.path.exists(".env"):
+            try:
+                with open(".env", "r") as f:
+                    for line in f:
+                        if "=" in line and not line.strip().startswith("#"):
+                            k, v = line.strip().split("=", 1)
+                            env_vars[k.strip()] = v.strip()
+            except Exception:
+                pass
+        for k, v in updates.items():
+            if v is not None and v.strip():
+                env_vars[k] = v.strip()
+                os.environ[k] = v.strip()
+        try:
+            with open(".env", "w") as f:
+                for k, v in env_vars.items():
+                    f.write(f"{k}={v}\n")
+            return True
+        except Exception:
+            return False
+
+    env_gemini = os.getenv("GEMINI_API_KEY", "").strip()
+    env_groq = os.getenv("GROQ_API_KEY", "").strip()
+
+    # Agent placeholders
+    interaction_llm = None
+    extraction_llm = None
+    compliance_llm = None
+    sdlc_llm = None
+
+    if ai_mode == "Google Gemini (Free Cloud)":
+        gemini_models = LLMClient.get_supported_models("gemini")
+        selected_model = st.selectbox("Gemini Model:", options=gemini_models, index=0)
+        gemini_key = st.text_input(
+            "Gemini API Key:",
+            value=env_gemini,
+            type="password",
+            help="Free from https://aistudio.google.com. Stored in .env so you don't have to re-enter."
+        )
+        if gemini_key.strip() and gemini_key.strip() != env_gemini:
+            if st.checkbox("💾 Remember key permanently in .env", value=True):
+                save_env_keys({"GEMINI_API_KEY": gemini_key.strip()})
+                st.toast("✅ Gemini key saved to .env!", icon="💾")
+
+        llm = LLMClient(provider="gemini", api_key=gemini_key, model=selected_model)
+        if llm.is_active():
+            st.success(f"🟢 Gemini AI ({llm.active_model}) Active")
+        elif gemini_key.strip() and getattr(llm, "last_error", ""):
+            st.error(f"❌ Gemini Error: {getattr(llm, 'last_error', '')[:90]}")
+            st.info("🔵 Falling back to Deterministic Heuristic Engine")
+        else:
+            st.info("🔵 Deterministic Heuristic Engine (Enter free Gemini key)")
+        
+        interaction_llm = llm
+        extraction_llm = llm
+        compliance_llm = llm
+        sdlc_llm = llm
+
+    elif ai_mode == "Groq Cloud (Free Llama 3.3 / DeepSeek-R1)":
+        groq_models = LLMClient.get_supported_models("groq")
+        selected_model = st.selectbox("Groq Model:", options=groq_models, index=0)
+        groq_key = st.text_input(
+            "Groq API Key:",
+            value=env_groq,
+            type="password",
+            help="Free instant key from https://console.groq.com (no card needed). Stored in .env."
+        )
+        if groq_key.strip() and groq_key.strip() != env_groq:
+            if st.checkbox("💾 Remember Groq key in .env", value=True):
+                save_env_keys({"GROQ_API_KEY": groq_key.strip()})
+                st.toast("✅ Groq key saved to .env!", icon="💾")
+
+        llm = LLMClient(provider="groq", api_key=groq_key, model=selected_model)
+        if llm.is_active():
+            st.success(f"🟢 Groq AI ({llm.active_model}) Active")
+        elif groq_key.strip() and getattr(llm, "last_error", ""):
+            st.error(f"❌ Groq Error: {getattr(llm, 'last_error', '')[:90]}")
+            st.info("🔵 Falling back to Deterministic Heuristic Engine")
+        else:
+            st.info("🔵 Deterministic Heuristic Engine (Enter free Groq key)")
+
+        interaction_llm = llm
+        extraction_llm = llm
+        compliance_llm = llm
+        sdlc_llm = llm
+
+    elif ai_mode == "Local Ollama (Free Offline - Zero Keys)":
+        online, models = LLMClient.check_ollama_status()
+        if online:
+            st.success("🟢 Local Ollama Online (http://localhost:11434)")
+            selected_model = st.selectbox("Installed Local Model:", options=models if models else ["llama3.2:latest"], index=0)
+            st.caption("🔒 100% On-Premise & Private. RBI Data Localization Compliant.")
+            llm = LLMClient(provider="ollama", model=selected_model)
+        else:
+            st.warning("🟠 Local Ollama is offline")
+            st.markdown("""
+            **To run 100% Free AI locally with Zero API Keys:**
+            1. Install: `curl -fsSL https://ollama.com/install.sh | sh`
+            2. Run: `ollama run llama3.2`
+            3. Refresh this page!
+            """)
+            st.info("🔵 Falling back to Deterministic Heuristic Engine")
+            llm = LLMClient(provider="ollama")
+
+        interaction_llm = llm
+        extraction_llm = llm
+        compliance_llm = llm
+        sdlc_llm = llm
+
+    elif ai_mode == "Free Multi-Model Ensemble (Hybrid)":
+        st.markdown("**Collaborative Multi-Model Routing:**")
+        st.caption("• 💬 Interview: Llama 3.1 8B / Gemini Flash (Low Latency)\n• 🛡️ Compliance: DeepSeek-R1 Distill (Reasoning)\n• 📋 Extraction: Llama 3.3 70B (High-Precision JSON)")
+        
+        col_k1, col_k2 = st.columns(2)
+        with col_k1:
+            gemini_key = st.text_input("Gemini Key:", value=env_gemini, type="password", help="For fast interview")
+        with col_k2:
+            groq_key = st.text_input("Groq Key:", value=env_groq, type="password", help="For DeepSeek-R1 & Llama 3.3")
+
+        if (gemini_key.strip() and gemini_key.strip() != env_gemini) or (groq_key.strip() and groq_key.strip() != env_groq):
+            save_env_keys({
+                "GEMINI_API_KEY": gemini_key.strip(),
+                "GROQ_API_KEY": groq_key.strip()
+            })
+
+        # Initialize clients for ensemble
+        gemini_client = LLMClient(provider="gemini", api_key=gemini_key, model="gemini-2.0-flash") if gemini_key.strip() else None
+        groq_r1_client = LLMClient(provider="groq", api_key=groq_key, model="deepseek-r1-distill-llama-70b") if groq_key.strip() else None
+        groq_70b_client = LLMClient(provider="groq", api_key=groq_key, model="llama-3.3-70b-versatile") if groq_key.strip() else None
+        groq_fast_client = LLMClient(provider="groq", api_key=groq_key, model="llama-3.1-8b-instant") if groq_key.strip() else None
+
+        # Fallback hierarchy
+        primary_fallback = gemini_client if (gemini_client and gemini_client.is_active()) else (groq_70b_client if (groq_70b_client and groq_70b_client.is_active()) else LLMClient())
+        
+        interaction_llm = groq_fast_client if (groq_fast_client and groq_fast_client.is_active()) else primary_fallback
+        compliance_llm = groq_r1_client if (groq_r1_client and groq_r1_client.is_active()) else primary_fallback
+        extraction_llm = groq_70b_client if (groq_70b_client and groq_70b_client.is_active()) else primary_fallback
+        sdlc_llm = compliance_llm
+
+        active_engines = []
+        if gemini_client and gemini_client.is_active():
+            active_engines.append("Gemini 2.0")
+        if groq_r1_client and groq_r1_client.is_active():
+            active_engines.append("DeepSeek-R1")
+        if groq_70b_client and groq_70b_client.is_active():
+            active_engines.append("Llama 3.3 70B")
+
+        if active_engines:
+            st.success(f"🟢 Active Ensemble: {', '.join(active_engines)}")
+        else:
+            st.info("🔵 Deterministic Heuristic Engine Active across all agents")
+
+    else:  # Deterministic Rule Engine
+        st.info("🔵 Deterministic Heuristic Engine (100% Offline Rule Base)")
+        llm = LLMClient(provider="none")
+        interaction_llm = llm
+        extraction_llm = llm
+        compliance_llm = llm
+        sdlc_llm = llm
+
+    # Initialize specialized agents
+    interaction_agent = InteractionAgent(interaction_llm)
+    extraction_agent = ExtractionAgent(extraction_llm)
+    compliance_agent = ComplianceAgent(compliance_llm)
+    sdlc_engine = SDLCEngine(sdlc_llm)
+    doc_agent = DocumentationAgent()
 
     st.markdown("---")
     st.markdown("**Active Specialized Agents:**")

@@ -48,10 +48,18 @@ This platform uses a **Collaborative Multi-Agent Architecture** to:
 
 ---
 
-## ⚡ Execution Modes (Dual-Engine Architecture)
+## ⚡ Execution Modes & 100% Free AI Engine Support
 
-* **Live AI Synthesis Mode:** Connects to the Google Gemini API (`gemini-2.0-flash` / `gemini-3.8-flash`) for real-time generative requirement elicitation, contextual follow-up questioning, and adaptive IEEE 830 structuring.
-* **Deterministic Rule Engine (Offline Resiliency):** When operating offline or in air-gapped environments, the system seamlessly activates rule-based heuristic parsing grounded in domain expert knowledge bases to ensure uninterrupted functionality.
+The system supports multiple **100% free AI engines** (requiring zero payment or credit card) with automatic fallback resiliency:
+
+1. **Google Gemini (Free Cloud Tier):** High-speed interactive elicitation via `gemini-2.0-flash` and `gemini-1.5-flash` with dynamic model discovery.
+2. **Groq Cloud (Free Open-Source Powerhouse):** Ultra-high-speed inference hosting Meta's flagship **Llama 3.3 70B**, **DeepSeek-R1 Distill 70B** (for deep regulatory reasoning), and **Llama 3.1 8B**.
+3. **Local Ollama (100% Free & Air-Gapped):** Connects to on-premise Ollama instances (`http://localhost:11434`) running `llama3.2`, `mistral`, or `deepseek-r1`. Zero API keys needed, ensuring 100% data sovereignty compliant with **RBI Data Localization** and GDPR mandates.
+4. **Free Multi-Model Ensemble (Hybrid Collaborative AI):** Dynamically assigns specialized free models across agents:
+   * *Interview Agent:* Llama 3.1 8B / Gemini Flash (Low latency conversational flow)
+   * *Compliance Agent:* DeepSeek-R1 Distill 70B (Chain-of-thought regulatory parsing)
+   * *Extraction Agent:* Llama 3.3 70B (High-precision structured IEEE 830 JSON)
+5. **Deterministic Rule Engine (Offline Fail-Safe):** In offline or disconnected environments, rule-based heuristic parsing and domain expert knowledge bases run seamlessly with zero crashes.
 
 ---
 
