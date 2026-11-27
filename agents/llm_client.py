@@ -19,9 +19,11 @@ except ImportError:
 
 
 GEMINI_MODELS = [
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
 ]
 
 GROQ_MODELS = [
@@ -139,35 +141,52 @@ class LLMClient:
         return []
 
     def validate_connection(self) -> bool:
-        """Validates connection with the configured provider."""
+        """Validates connection with the configured provider with automatic model discovery and fallback."""
         self.last_error = ""
 
         if self.provider == "gemini":
             if not self.client or not self.api_key:
                 return False
+
+            candidate_models = []
+            if self.active_model:
+                candidate_models.append(self.active_model)
+
+            # Discover models authorized for this key
             try:
-                res = self.client.models.generate_content(
-                    model=self.active_model,
-                    contents="Say OK"
-                )
-                if res and res.text:
-                    self._validated = True
-                    return True
-            except Exception as e:
-                self.last_error = str(e)
-                # Try fallback models
-                for alt_model in GEMINI_MODELS:
-                    if alt_model == self.active_model:
-                        continue
-                    try:
-                        res = self.client.models.generate_content(model=alt_model, contents="Say OK")
-                        if res and res.text:
-                            self.active_model = alt_model
-                            self._validated = True
-                            self.last_error = ""
-                            return True
-                    except Exception:
-                        continue
+                discovered = []
+                for m in self.client.models.list():
+                    m_name = getattr(m, "name", "").replace("models/", "")
+                    if "gemini" in m_name and "image" not in m_name and "embedding" not in m_name:
+                        discovered.append(m_name)
+                # Prioritize lite and flash models
+                lite = [m for m in discovered if "flash-lite" in m]
+                flash = [m for m in discovered if "flash" in m and "flash-lite" not in m]
+                others = [m for m in discovered if "flash" not in m]
+                for m in (lite + flash + others + list(GEMINI_MODELS)):
+                    if m not in candidate_models:
+                        candidate_models.append(m)
+            except Exception:
+                for m in GEMINI_MODELS:
+                    if m not in candidate_models:
+                        candidate_models.append(m)
+
+            # Test candidates in order until a working one is found
+            for model_name in candidate_models:
+                try:
+                    res = self.client.models.generate_content(
+                        model=model_name,
+                        contents="Say OK"
+                    )
+                    if res and res.text:
+                        self.active_model = model_name
+                        self._validated = True
+                        self.last_error = ""
+                        return True
+                except Exception as e:
+                    self.last_error = str(e)
+                    continue
+
             self._validated = False
             return False
 
