@@ -311,8 +311,13 @@ st.markdown('<div class="main-title">Agentic AI Requirements Engineering & SDLC 
 st.markdown(f'<div class="sub-title">Active Project: <b>{active_title}</b> ({active_domain})</div>', unsafe_allow_html=True)
 
 # ----------------- RUN ANALYSIS PIPELINE -----------------
-# Agent Extractions
-extraction_result = extraction_agent.extract_and_analyze(full_conversation_text, case_key=st.session_state.case_key)
+# Agent Extractions (Cached in session_state so tab switches or slider adjustments don't re-run expensive LLM calls)
+extraction_cache_key = f"{st.session_state.case_key}_{hash(full_conversation_text)}"
+if "cached_extraction" not in st.session_state or st.session_state.get("cached_extraction_key") != extraction_cache_key:
+    st.session_state.cached_extraction = extraction_agent.extract_and_analyze(full_conversation_text, case_key=st.session_state.case_key)
+    st.session_state.cached_extraction_key = extraction_cache_key
+
+extraction_result = st.session_state.cached_extraction
 requirements = extraction_result["requirements"]
 quality_issues = extraction_result["quality_issues"]
 

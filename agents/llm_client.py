@@ -68,6 +68,9 @@ def clean_json_string(raw: str) -> Optional[Any]:
     return None
 
 
+_VALIDATED_CACHE = {}
+
+
 class LLMClient:
     def __init__(
         self,
@@ -88,10 +91,16 @@ class LLMClient:
             self.client = None
             if GENAI_AVAILABLE and self.api_key:
                 try:
-                    self.client = genai.Client(api_key=self.api_key)
+                    self.client = genai.Client(api_key=self.api_key, http_options={"timeout": 15000})
                 except Exception as e:
                     self.last_error = str(e)
                     self.client = None
+
+            # Fast cache lookup to avoid repeating network validation
+            cache_k = (self.provider, self.api_key)
+            if cache_k in _VALIDATED_CACHE:
+                self.active_model = _VALIDATED_CACHE[cache_k]
+                self._validated = True
 
         elif self.provider == "groq":
             raw_key = api_key if api_key is not None else os.environ.get("GROQ_API_KEY", "")
@@ -99,6 +108,10 @@ class LLMClient:
             self.active_model = model or GROQ_MODELS[0]
             self.base_url = "https://api.groq.com/openai/v1"
             self.client = None
+            cache_k = (self.provider, self.api_key)
+            if cache_k in _VALIDATED_CACHE:
+                self.active_model = _VALIDATED_CACHE[cache_k]
+                self._validated = True
 
         elif self.provider == "ollama":
             self.api_key = ""  # Ollama requires no key
@@ -182,6 +195,7 @@ class LLMClient:
                         self.active_model = model_name
                         self._validated = True
                         self.last_error = ""
+                        _VALIDATED_CACHE[(self.provider, self.api_key)] = model_name
                         return True
                 except Exception as e:
                     self.last_error = str(e)
