@@ -106,5 +106,26 @@ Architect: The system must achieve 99.999% availability with automated multi-reg
             "stakeholder_avail": 6,
             "failure_consequence": 10
         }
+    },
+    "student_microlending": {
+        "title": "Student Micro-Lending & Instant Credit (₹1,000 - ₹10,000)",
+        "domain": "Digital Lending / Micro-Credit (RBI Regulated)",
+        "description": "Instant digital micro-lending platform for university students offering credit from ₹1,000 to ₹10,000 within 5 minutes, compliant with RBI Digital Lending Directions, KFS mandates, and DPDP PII encryption.",
+        "raw_stakeholder_input": """
+Stakeholder: We want to build a Student Micro-Lending App that gives instant loans from ₹1,000 to ₹10,000 within 5 minutes using Aadhaar/PAN KYC and UPI auto-debit for repayment.
+Compliance Officer: The loan tenure is 1 to 6 months. For missed repayments, we charge a flat penal charge of ₹50 without any compounding interest, strictly capped as per RBI Digital Lending Guidelines and Fair Practices Code.
+Credit Risk Analyst: Credit scoring uses real-time bureau API (CIBIL score > 650) plus college ID verification and 3-month bank statement analysis. Before disbursement, an in-app Key Fact Statement (KFS) is presented with explicit digital consent, an email copy is dispatched, and a mandatory 3-day cooling-off period is provided for exit.
+Security Architect: Audit trails are logged using append-only, tamper-evident hash chains stored for 7 years. All PII data is masked and encrypted using AES-256 at rest (Aadhaar Data Vault) and TLS 1.3 in transit. Third-party bureau APIs have a strict 3-second timeout SLA.
+        """,
+        "default_factors": {
+            "req_stability": 7,
+            "reg_criticality": 10,
+            "security_risk": 9,
+            "complexity": 8,
+            "change_freq": 7,
+            "cd_need": 8,
+            "stakeholder_avail": 7,
+            "failure_consequence": 9
+        }
     }
 }
